@@ -1,0 +1,1094 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Phishing Detector</title>
+
+<style>
+
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800&family=Share+Tech+Mono&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    min-height: 100vh;
+    background:
+        linear-gradient(rgba(0, 210, 255, 0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 210, 255, 0.035) 1px, transparent 1px),
+        radial-gradient(circle at 50% 0%, #101b2b 0%, #050914 45%, #02050c 100%);
+    background-size: 48px 48px, 48px 48px, 100% 100%;
+    color: #d8faff;
+    font-family: 'Share Tech Mono', monospace;
+    overflow-x: hidden;
+}
+
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background:
+        linear-gradient(
+            115deg,
+            transparent 0%,
+            rgba(0, 225, 255, 0.035) 40%,
+            transparent 42%
+        );
+}
+
+.dashboard {
+    width: min(1230px, 92%);
+    margin: auto;
+    padding: 45px 0 80px;
+}
+
+.header {
+    text-align: center;
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+}
+
+.shield {
+    width: 40px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ff674f;
+    font-size: 30px;
+    border: 1px solid rgba(255, 100, 70, 0.5);
+    clip-path: polygon(50% 0%, 100% 18%, 90% 78%, 50% 100%, 10% 78%, 0% 18%);
+    background: linear-gradient(145deg, #ff775c, #263546);
+    text-shadow: 0 0 15px #ff453d;
+}
+
+.header h1 {
+    font-family: 'Orbitron', sans-serif;
+    font-size: clamp(27px, 4vw, 43px);
+    letter-spacing: 2px;
+    color: #d9fbff;
+    text-shadow:
+        0 0 8px rgba(0, 225, 255, 0.6),
+        0 0 25px rgba(0, 225, 255, 0.25);
+}
+
+.subtitle {
+    margin-top: 18px;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 15px;
+    letter-spacing: 3px;
+    color: #58c9d9;
+}
+
+.header-line {
+    width: 100%;
+    height: 1px;
+    margin-top: 42px;
+    background: rgba(91, 226, 255, 0.22);
+    position: relative;
+}
+
+.header-line::after {
+    content: "";
+    position: absolute;
+    width: 240px;
+    height: 2px;
+    left: 50%;
+    top: -1px;
+    transform: translateX(-50%);
+    background: #57eaff;
+    box-shadow:
+        0 0 8px #57eaff,
+        0 0 20px rgba(87, 234, 255, 0.5);
+}
+
+.scanner {
+    margin-top: 38px;
+    padding: 28px;
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    background: rgba(13, 24, 37, 0.78);
+    border: 1px solid rgba(92, 220, 240, 0.27);
+    border-radius: 10px;
+    box-shadow:
+        inset 0 0 30px rgba(0, 150, 180, 0.025),
+        0 0 30px rgba(0, 0, 0, 0.4);
+}
+
+.url-box {
+    height: 68px;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    padding: 0 18px;
+    background: #02060d;
+    border: 1px solid #45d9f1;
+    border-radius: 6px;
+    box-shadow:
+        inset 0 0 20px rgba(0, 220, 255, 0.04),
+        0 0 8px rgba(0, 220, 255, 0.08);
+}
+
+.search-icon {
+    color: #b5bdc5;
+    font-size: 32px;
+    margin-right: 15px;
+}
+
+.url-box input {
+    width: 100%;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: #72e8ff;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 20px;
+}
+
+.scan-btn {
+    height: 68px;
+    min-width: 260px;
+    background: transparent;
+    border: 1px solid #50dff8;
+    border-radius: 6px;
+    color: #67eaff;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 17px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: 0.25s ease;
+}
+
+.scan-btn:hover {
+    background: rgba(53, 220, 255, 0.1);
+    box-shadow:
+        0 0 12px rgba(53, 220, 255, 0.35),
+        inset 0 0 12px rgba(53, 220, 255, 0.08);
+    text-shadow: 0 0 10px #54eaff;
+}
+
+.result-card {
+    margin-top: 30px;
+    min-height: 280px;
+    padding: 40px 45px;
+    display: flex;
+    align-items: center;
+    gap: 70px;
+    background: rgba(12, 19, 31, 0.86);
+    border: 1px solid rgba(83, 218, 239, 0.28);
+    border-radius: 10px;
+    box-shadow:
+        0 0 35px rgba(0, 0, 0, 0.35),
+        inset 0 0 40px rgba(0, 170, 200, 0.025);
+}
+
+.score-section {
+    width: 230px;
+    min-width: 230px;
+    padding-right: 45px;
+    border-right: 1px solid rgba(100, 130, 155, 0.16);
+}
+
+.circle {
+    width: 140px;
+    height: 140px;
+    margin: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background:
+        radial-gradient(circle, #151c28 58%, transparent 60%),
+        conic-gradient(
+            #ff3846 0deg,
+            #ff3846 292deg,
+            rgba(255, 70, 80, 0.08) 292deg,
+            rgba(255, 70, 80, 0.08) 360deg
+        );
+    box-shadow:
+        0 0 18px rgba(255, 45, 60, 0.25),
+        inset 0 0 15px rgba(255, 45, 60, 0.1);
+}
+
+.circle span {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 29px;
+    font-weight: 700;
+    color: white;
+}
+
+.score-label {
+    margin-top: 22px;
+    color: #7d8da7;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 17px;
+    line-height: 1.35;
+    letter-spacing: 1px;
+}
+
+.result-content {
+    flex: 1;
+}
+
+.result-content h2 {
+    color: #ff3e4e;
+    font-family: 'Orbitron', sans-serif;
+    font-size: clamp(30px, 4vw, 47px);
+    letter-spacing: 1px;
+    text-shadow:
+        0 0 7px rgba(255, 48, 62, 0.8),
+        0 0 25px rgba(255, 48, 62, 0.25);
+}
+
+.target {
+    margin-top: 28px;
+    min-height: 55px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 0 22px;
+    background: #03060b;
+    border-left: 5px solid #55eaff;
+    border-radius: 4px;
+}
+
+.target span {
+    color: #5ee9ff;
+    font-weight: bold;
+}
+
+.target strong {
+    color: #c8d0d9;
+    font-weight: 400;
+    word-break: break-all;
+}
+
+.analytics {
+    margin-top: 40px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 28px;
+}
+
+.panel {
+    min-height: 320px;
+    overflow: hidden;
+    background: rgba(8, 15, 25, 0.88);
+    border: 1px solid rgba(76, 216, 238, 0.27);
+    border-radius: 9px;
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.35);
+}
+
+.panel-title {
+    height: 68px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 30px;
+    border-bottom: 1px solid rgba(100, 150, 170, 0.1);
+    background: rgba(0, 0, 0, 0.16);
+    color: #63eaff;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 19px;
+    letter-spacing: 1px;
+}
+
+.panel-content {
+    padding: 28px;
+}
+
+.log-item {
+    min-height: 70px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 0 16px;
+    margin-bottom: 15px;
+    border-left: 4px solid #4bdfff;
+    background: rgba(8, 14, 24, 0.9);
+}
+
+.log-item p {
+    color: #bdc7d2;
+    font-size: 16px;
+    line-height: 1.4;
+}
+
+.info {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: #77899c;
+    color: #06101b;
+    font-weight: bold;
+}
+
+.telemetry {
+    padding: 28px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.metric {
+    min-height: 105px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    background: #03070e;
+    border: 1px solid rgba(110, 170, 190, 0.12);
+    border-radius: 5px;
+}
+
+.metric span {
+    color: #74839b;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 13px;
+    letter-spacing: 1px;
+}
+
+.metric strong {
+    align-self: flex-end;
+    color: #7eff77;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 27px;
+    text-shadow: 0 0 10px rgba(100, 255, 100, 0.4);
+}
+
+@media (max-width: 850px) {
+
+    .scanner {
+        flex-direction: column;
+    }
+
+    .url-box,
+    .scan-btn {
+        width: 100%;
+    }
+
+    .result-card {
+        flex-direction: column;
+        gap: 35px;
+        text-align: center;
+    }
+
+    .score-section {
+        width: 100%;
+        padding-right: 0;
+        padding-bottom: 30px;
+        border-right: none;
+        border-bottom: 1px solid rgba(100, 130, 155, 0.16);
+    }
+
+    .target {
+        text-align: left;
+    }
+
+    .analytics {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 500px) {
+
+    .dashboard {
+        width: 94%;
+        padding-top: 25px;
+    }
+
+    .brand {
+        flex-direction: column;
+    }
+
+    .subtitle {
+        font-size: 10px;
+        letter-spacing: 1.5px;
+    }
+
+    .scanner {
+        padding: 15px;
+    }
+
+    .url-box {
+        height: 58px;
+    }
+
+    .scan-btn {
+        height: 58px;
+        min-width: 0;
+    }
+
+    .result-card {
+        padding: 30px 20px;
+    }
+
+    .result-content h2 {
+        font-size: 28px;
+    }
+
+    .target {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 15px;
+    }
+
+    .telemetry {
+        grid-template-columns: 1fr;
+        padding: 15px;
+    }
+}
+
+/* Extra result styles */
+
+.safe-result {
+    color: #65ff75 !important;
+    text-shadow:
+        0 0 7px rgba(70, 255, 90, 0.8),
+        0 0 25px rgba(70, 255, 90, 0.25) !important;
+}
+
+.phishing-result {
+    color: #ff3e4e !important;
+}
+
+.scanning-result {
+    color: #63eaff !important;
+}
+
+.error-result {
+    color: #ffb347 !important;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="dashboard">
+
+    <!-- HEADER -->
+
+    <header class="header">
+
+        <div class="brand">
+
+            <div class="shield">◆</div>
+
+            <h1>PHISHING DETECTOR</h1>
+
+        </div>
+
+        <div class="subtitle">
+            REAL-TIME AI / ML THREAT ANALYSIS SYSTEM
+        </div>
+
+        <div class="header-line"></div>
+
+    </header>
+
+
+    <!-- URL SCANNER -->
+
+    <section class="scanner">
+
+        <div class="url-box">
+
+            <div class="search-icon">⌕</div>
+
+            <input
+                type="text"
+                id="urlInput"
+                placeholder="Enter URL to analyze..."
+                autocomplete="off"
+            >
+
+        </div>
+
+        <button
+            class="scan-btn"
+            id="scanBtn"
+            type="button"
+        >
+            SCAN URL
+        </button>
+
+    </section>
+
+
+    <!-- RESULT -->
+
+    <section class="result-card">
+
+        <div class="score-section">
+
+            <div class="circle">
+
+                <span id="score">
+                    --
+                </span>
+
+            </div>
+
+            <div class="score-label" id="scoreLabel">
+                THREAT<br>
+                CONFIDENCE
+            </div>
+
+        </div>
+
+
+        <div class="result-content">
+
+            <h2 id="resultTitle">
+                READY TO SCAN
+            </h2>
+
+            <div class="target">
+
+                <span>TARGET:</span>
+
+                <strong id="targetUrl">
+                    No URL scanned
+                </strong>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- ANALYTICS -->
+
+    <section class="analytics">
+
+        <!-- ANALYSIS LOG -->
+
+        <div class="panel">
+
+            <div class="panel-title">
+                ◈ ANALYSIS LOG
+            </div>
+
+            <div class="panel-content">
+
+                <div class="log-item">
+
+                    <div class="info">i</div>
+
+                    <p id="log1">
+                        System ready. Waiting for URL input.
+                    </p>
+
+                </div>
+
+                <div class="log-item">
+
+                    <div class="info">i</div>
+
+                    <p id="log2">
+                        AI/ML detection engine standing by.
+                    </p>
+
+                </div>
+
+                <div class="log-item">
+
+                    <div class="info">i</div>
+
+                    <p id="log3">
+                        Backend connection ready.
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- TELEMETRY -->
+
+        <div class="panel">
+
+            <div class="panel-title">
+                ◈ SYSTEM TELEMETRY
+            </div>
+
+            <div class="telemetry">
+
+                <div class="metric">
+
+                    <span>RISK LEVEL</span>
+
+                    <strong id="riskLevel">
+                        --
+                    </strong>
+
+                </div>
+
+
+                <div class="metric">
+
+                    <span>PREDICTION</span>
+
+                    <strong id="prediction">
+                        --
+                    </strong>
+
+                </div>
+
+
+                <div class="metric">
+
+                    <span>FEATURES</span>
+
+                    <strong id="featuresUsed">
+                        --
+                    </strong>
+
+                </div>
+
+
+                <div class="metric">
+
+                    <span>STATUS</span>
+
+                    <strong id="systemStatus">
+                        READY
+                    </strong>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+</div>
+
+
+<!-- JAVASCRIPT -->
+
+<script>
+
+const urlInput = document.getElementById("urlInput");
+const scanBtn = document.getElementById("scanBtn");
+
+const resultTitle = document.getElementById("resultTitle");
+const targetUrl = document.getElementById("targetUrl");
+
+const score = document.getElementById("score");
+const scoreLabel = document.getElementById("scoreLabel");
+const circle = document.querySelector(".circle");
+
+const riskLevel = document.getElementById("riskLevel");
+const prediction = document.getElementById("prediction");
+const featuresUsed = document.getElementById("featuresUsed");
+const systemStatus = document.getElementById("systemStatus");
+
+const log1 = document.getElementById("log1");
+const log2 = document.getElementById("log2");
+const log3 = document.getElementById("log3");
+
+
+/* ----------------------------------
+   CONFIDENCE CIRCLE COLOR RANGES
+   70-100 = GREEN
+   50-69  = ORANGE
+   30-49  = YELLOW
+   0-29   = RED
+----------------------------------- */
+
+function updateConfidenceCircle(confidence) {
+
+    let color;
+    let glowColor;
+
+    if (confidence >= 70) {
+        color = "#22c55e";
+        glowColor = "rgba(34, 197, 94, 0.35)";
+    }
+    else if (confidence >= 50) {
+        color = "#f97316";
+        glowColor = "rgba(249, 115, 22, 0.35)";
+    }
+    else if (confidence >= 30) {
+        color = "#eab308";
+        glowColor = "rgba(234, 179, 8, 0.35)";
+    }
+    else {
+        color = "#ef4444";
+        glowColor = "rgba(239, 68, 68, 0.35)";
+    }
+
+    const degree = (confidence / 100) * 360;
+
+    circle.style.background = `
+        radial-gradient(circle, #151c28 58%, transparent 60%),
+        conic-gradient(
+            ${color} 0deg,
+            ${color} ${degree}deg,
+            rgba(255, 255, 255, 0.08) ${degree}deg,
+            rgba(255, 255, 255, 0.08) 360deg
+        )
+    `;
+
+    circle.style.boxShadow = `
+        0 0 18px ${glowColor},
+        inset 0 0 15px ${glowColor}
+    `;
+}
+
+function resetCircle() {
+
+    circle.style.background = `
+        radial-gradient(circle, #151c28 58%, transparent 60%),
+        conic-gradient(
+            #ff3846 0deg,
+            #ff3846 292deg,
+            rgba(255, 70, 80, 0.08) 292deg,
+            rgba(255, 70, 80, 0.08) 360deg
+        )
+    `;
+
+    circle.style.boxShadow = `
+        0 0 18px rgba(255, 45, 60, 0.25),
+        inset 0 0 15px rgba(255, 45, 60, 0.1)
+    `;
+}
+
+
+scanBtn.addEventListener("click", scanURL);
+
+
+urlInput.addEventListener("keydown", function(event) {
+
+    if (event.key === "Enter") {
+        scanURL();
+    }
+
+});
+
+
+async function scanURL() {
+
+    const url = urlInput.value.trim();
+
+    // Check empty URL
+
+    if (!url) {
+
+        resultTitle.textContent = "ENTER A URL";
+        resultTitle.className = "error-result";
+
+        targetUrl.textContent = "No URL provided";
+
+        score.textContent = "--";
+        resetCircle();
+
+        log1.textContent = "Please enter a URL before scanning.";
+
+        return;
+    }
+
+
+    // Start scanning
+
+    scanBtn.disabled = true;
+    scanBtn.textContent = "SCANNING...";
+
+    resultTitle.textContent = "ANALYZING...";
+    resultTitle.className = "scanning-result";
+
+    targetUrl.textContent = url;
+
+    score.textContent = "--";
+    resetCircle();
+
+    riskLevel.textContent = "SCANNING";
+    prediction.textContent = "...";
+    featuresUsed.textContent = "...";
+    systemStatus.textContent = "BUSY";
+
+    log1.textContent = "URL received by detection system.";
+    log2.textContent = "Sending URL to AI/ML analysis engine...";
+    log3.textContent = "Waiting for backend prediction...";
+
+
+    try {
+
+        const response = await fetch(
+            "http://127.0.0.1:8000/analyze",
+            {
+                method: "POST",
+
+                headers: {
+                    "Content-Type": "application/json"
+                },
+
+                body: JSON.stringify({
+                    url: url
+                })
+            }
+        );
+
+
+        const data = await response.json();
+
+
+        // Backend error
+
+        if (!response.ok) {
+
+            throw new Error(
+                data.detail || "Backend returned an error"
+            );
+
+        }
+
+
+        // Get prediction
+
+        const predictionText =
+            String(data.prediction || "").toUpperCase();
+
+
+        const risk =
+            String(data.risk_level || "UNKNOWN").toUpperCase();
+
+
+        // Display URL
+
+        targetUrl.textContent =
+            data.url || url;
+
+
+        // Display prediction
+
+        prediction.textContent =
+            predictionText;
+
+
+        // Display risk
+
+        riskLevel.textContent =
+            risk;
+
+
+        // Display features
+
+        featuresUsed.textContent =
+            data.features_used ?? "--";
+
+
+        // Calculate confidence
+
+        let confidence = null;
+
+        if (
+            Array.isArray(data.probabilities) &&
+            data.probabilities.length > 0
+        ) {
+
+            const values = data.probabilities
+                .map(Number)
+                .filter(value => !isNaN(value));
+
+            if (values.length > 0) {
+
+                let highest = Math.max(...values);
+
+                /*
+                 * Backend may return probabilities
+                 * as decimals or percentages.
+                 */
+
+                if (highest <= 1) {
+                    confidence = highest * 100;
+                } else {
+                    confidence = highest;
+                }
+
+            }
+
+        }
+
+
+        // Display confidence
+
+        if (confidence !== null) {
+
+            // Keep confidence inside the valid 0-100 range
+            confidence = Math.max(0, Math.min(100, confidence));
+
+            score.textContent =
+                confidence.toFixed(1) + "%";
+
+            // 70-100 green, 50-69 orange, 30-49 yellow, 0-29 red
+            updateConfidenceCircle(confidence);
+
+        } else {
+
+            score.textContent = "--";
+            resetCircle();
+
+        }
+
+
+        // PHISHING
+
+        if (predictionText === "PHISHING") {
+
+            resultTitle.textContent =
+                "PHISHING DETECTED";
+
+            resultTitle.className =
+                "phishing-result";
+
+            scoreLabel.innerHTML =
+                "THREAT<br>CONFIDENCE";
+
+            log1.textContent =
+                "Potential phishing characteristics detected.";
+
+            log2.textContent =
+                "Machine learning model classified this URL as malicious.";
+
+            log3.textContent =
+                "User warning: avoid opening this URL.";
+
+            systemStatus.textContent =
+                "THREAT";
+
+        }
+
+
+        // SAFE
+
+        else if (predictionText === "SAFE") {
+
+            resultTitle.textContent =
+                "URL IS SAFE";
+
+            resultTitle.className =
+                "safe-result";
+
+            scoreLabel.innerHTML =
+                "SAFETY<br>CONFIDENCE";
+
+            log1.textContent =
+                "URL successfully analyzed.";
+
+            log2.textContent =
+                "Machine learning model classified this URL as safe.";
+
+            log3.textContent =
+                "No phishing classification returned.";
+
+            systemStatus.textContent =
+                "PROTECTED";
+
+        }
+
+
+        // UNKNOWN
+
+        else {
+
+            resultTitle.textContent =
+                predictionText || "UNKNOWN RESULT";
+
+            resultTitle.className =
+                "scanning-result";
+
+            log1.textContent =
+                "Backend analysis completed.";
+
+            log2.textContent =
+                "Prediction received from detection engine.";
+
+            log3.textContent =
+                "Review the returned risk level.";
+
+            systemStatus.textContent =
+                "COMPLETE";
+
+        }
+
+    }
+
+
+    catch (error) {
+
+        console.error(error);
+
+
+        resultTitle.textContent =
+            "CONNECTION ERROR";
+
+        resultTitle.className =
+            "error-result";
+
+        targetUrl.textContent =
+            url;
+
+        score.textContent =
+            "--";
+
+        riskLevel.textContent =
+            "ERROR";
+
+        prediction.textContent =
+            "--";
+
+        featuresUsed.textContent =
+            "--";
+
+        systemStatus.textContent =
+            "OFFLINE";
+
+
+        log1.textContent =
+            "Could not connect to the phishing detection API.";
+
+        log2.textContent =
+            "Make sure your friend's backend is running.";
+
+        log3.textContent =
+            "Expected API: http://127.0.0.1:8000/analyze";
+
+    }
+
+
+    finally {
+
+        scanBtn.disabled = false;
+        scanBtn.textContent = "SCAN URL";
+
+    }
+
+}
+
+</script>
+
+</body>
+</html>
